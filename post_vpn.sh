@@ -1,0 +1,19 @@
+#!/bin/bash
+
+default_line=$(netstat -rn |grep default)
+gateway=$(echo $default_line | awk '{print $2}')
+interface=$(echo $default_line | awk '{print $6}')
+echo $gateway
+echo $interface
+
+scutil <<EOF
+d.init
+get State:/Network/Service/forticlientsslvpn/IPv4
+d.add InterfaceName ppp0
+set State:/Network/Service/forticlientsslvpn/IPv4
+EOF
+
+route delete default
+route delete -ifscope $interface default
+route add -ifscope $interface default $gateway
+route add -net 0.0.0.0 -interface $interface
